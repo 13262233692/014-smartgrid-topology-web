@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTopologyStore } from '../store';
 
 interface Props {
@@ -11,6 +12,12 @@ export default function Sidebar({ onImport }: Props) {
   const selectSubstation = useTopologyStore((s) => s.selectSubstation);
   const generateDemo = useTopologyStore((s) => s.generateDemo);
   const loading = useTopologyStore((s) => s.loading);
+  const simRunning = useTopologyStore((s) => s.simRunning);
+  const startSimulation = useTopologyStore((s) => s.startSimulation);
+  const stopSimulation = useTopologyStore((s) => s.stopSimulation);
+  const setLoadMultiplier = useTopologyStore((s) => s.setLoadMultiplier);
+  const [loadMultiplier, setLocalMultiplier] = useState(1.0);
+  const [simInterval, setSimInterval] = useState(5000);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -51,6 +58,70 @@ export default function Sidebar({ onImport }: Props) {
               onChange={handleFileChange}
             />
           </label>
+        </div>
+      </div>
+
+      <div className="sidebar-section">
+        <h3>潮流模拟控制</h3>
+        <div className="sim-controls">
+          <div className="sim-row">
+            <label className="sim-label">模拟间隔</label>
+            <select
+              className="sim-select"
+              value={simInterval}
+              onChange={(e) => setSimInterval(Number(e.target.value))}
+              disabled={simRunning}
+            >
+              <option value={2000}>2 秒</option>
+              <option value={5000}>5 秒</option>
+              <option value={10000}>10 秒</option>
+            </select>
+          </div>
+          <div className="sim-row">
+            <label className="sim-label">负荷倍数</label>
+            <div className="sim-slider-wrap">
+              <input
+                type="range"
+                min="0.5"
+                max="3.0"
+                step="0.1"
+                value={loadMultiplier}
+                onChange={(e) => {
+                  const val = Number(e.target.value);
+                  setLocalMultiplier(val);
+                  setLoadMultiplier(val);
+                }}
+                className="sim-slider"
+              />
+              <span className="sim-value">{loadMultiplier.toFixed(1)}x</span>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+            {!simRunning ? (
+              <button
+                className="btn btn-primary"
+                onClick={() => startSimulation(simInterval)}
+                disabled={loading}
+                style={{ flex: 1 }}
+              >
+                ▶ 开始SCADA模拟
+              </button>
+            ) : (
+              <button
+                className="btn btn-danger"
+                onClick={stopSimulation}
+                style={{ flex: 1 }}
+              >
+                ■ 停止模拟
+              </button>
+            )}
+          </div>
+          {simRunning && (
+            <div className="sim-status active">
+              <div className="sim-pulse"></div>
+              <span>SCADA 数据流实时注入中 · 每 {simInterval / 1000}s 推送</span>
+            </div>
+          )}
         </div>
       </div>
 

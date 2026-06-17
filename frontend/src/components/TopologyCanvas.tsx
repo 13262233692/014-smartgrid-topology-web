@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { Graph } from '@antv/g6';
-import { EquipmentNode, ConnectionEdge } from '../types';
-import { createTopologyGraph, updateGraphData } from '../graph/topology-graph';
+import { EquipmentNode, ConnectionEdge, LowVoltageAlert } from '../types';
+import { createTopologyGraph, updateGraphData, updateLowVoltageNodes, clearAllLowVoltageAlerts } from '../graph/topology-graph';
+import { useTopologyStore } from '../store';
 
 interface Props {
   nodes: EquipmentNode[];
@@ -13,6 +14,7 @@ interface Props {
 export default function TopologyCanvas({ nodes, edges, onNodeClick, selectedNodeId }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const graphRef = useRef<Graph | null>(null);
+  const lowVoltageAlerts = useTopologyStore((state) => state.lowVoltageAlerts);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -36,9 +38,20 @@ export default function TopologyCanvas({ nodes, edges, onNodeClick, selectedNode
 
   useEffect(() => {
     if (graphRef.current) {
-      updateGraphData(graphRef.current, nodes, edges, selectedNodeId);
+      const lowVoltageIds = new Set(lowVoltageAlerts.map(a => a.nodeId));
+      updateGraphData(graphRef.current, nodes, edges, selectedNodeId, lowVoltageIds);
     }
   }, [nodes, edges, selectedNodeId]);
+
+  useEffect(() => {
+    if (graphRef.current) {
+      if (lowVoltageAlerts.length === 0) {
+        clearAllLowVoltageAlerts(graphRef.current);
+      } else {
+        updateLowVoltageNodes(graphRef.current, lowVoltageAlerts);
+      }
+    }
+  }, [lowVoltageAlerts]);
 
   const handleZoomIn = () => {
     graphRef.current?.zoomTo(graphRef.current.getZoom() * 1.2);

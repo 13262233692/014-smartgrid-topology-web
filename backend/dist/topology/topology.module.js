@@ -20,7 +20,7 @@ exports.TopologyModule = TopologyModule = __decorate([
         imports: [cim_parser_module_1.CimParserModule],
         controllers: [topology_controller_1.TopologyController],
         providers: [topology_service_1.TopologyService, topology_repository_1.TopologyRepository],
-        exports: [topology_service_1.TopologyService],
+        exports: [topology_service_1.TopologyService, topology_repository_1.TopologyRepository],
     })
 ], TopologyModule);
 //# sourceMappingURL=topology.module.js.map

@@ -3,6 +3,7 @@ import { MulterModule } from '@nestjs/platform-express';
 import { Neo4jModule } from './neo4j/neo4j.module';
 import { TopologyModule } from './topology/topology.module';
 import { CimParserModule } from './cim-parser/cim-parser.module';
+import { PowerFlowModule } from './power-flow/power-flow.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { CimParserModule } from './cim-parser/cim-parser.module';
     Neo4jModule,
     CimParserModule,
     TopologyModule,
+    PowerFlowModule,
   ],
 })
 export class AppModule {}

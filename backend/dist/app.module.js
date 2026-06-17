@@ -12,6 +12,7 @@ const platform_express_1 = require("@nestjs/platform-express");
 const neo4j_module_1 = require("./neo4j/neo4j.module");
 const topology_module_1 = require("./topology/topology.module");
 const cim_parser_module_1 = require("./cim-parser/cim-parser.module");
+const power_flow_module_1 = require("./power-flow/power-flow.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -24,6 +25,7 @@ exports.AppModule = AppModule = __decorate([
             neo4j_module_1.Neo4jModule,
             cim_parser_module_1.CimParserModule,
             topology_module_1.TopologyModule,
+            power_flow_module_1.PowerFlowModule,
         ],
     })
 ], AppModule);

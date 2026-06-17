@@ -8,6 +8,6 @@ import { CimParserModule } from '../cim-parser/cim-parser.module';
   imports: [CimParserModule],
   controllers: [TopologyController],
   providers: [TopologyService, TopologyRepository],
-  exports: [TopologyService],
+  exports: [TopologyService, TopologyRepository],
 })
 export class TopologyModule {}

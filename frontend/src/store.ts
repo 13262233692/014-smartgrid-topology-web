@@ -1,6 +1,7 @@
 import { create } from 'zustand';
-import { EquipmentNode, ConnectionEdge, TopologyResult } from './types';
-import { topologyApi } from './api';
+import { EquipmentNode, ConnectionEdge, TopologyResult, LowVoltageAlert, VoltageUpdate, PowerFlowStatus } from './types';
+import { topologyApi, powerFlowApi } from './api';
+import { wsClient } from './ws-client';
 
 interface TopologyState {
   substations: EquipmentNode[];
@@ -12,6 +13,12 @@ interface TopologyState {
   loading: boolean;
   error: string | null;
 
+  lowVoltageAlerts: LowVoltageAlert[];
+  voltageMap: Map<string, number>;
+  powerFlowStatus: PowerFlowStatus | null;
+  simRunning: boolean;
+  wsConnected: boolean;
+
   loadSubstations: () => Promise<void>;
   loadStats: () => Promise<void>;
   selectSubstation: (ss: EquipmentNode | null) => Promise<void>;
@@ -19,6 +26,13 @@ interface TopologyState {
   generateDemo: () => Promise<void>;
   importCim: (file: File) => Promise<void>;
   toggleBreaker: (id: string, open: boolean) => Promise<void>;
+
+  startWs: () => void;
+  stopWs: () => void;
+  startSimulation: (intervalMs?: number) => Promise<void>;
+  stopSimulation: () => Promise<void>;
+  setLoadMultiplier: (multiplier: number) => Promise<void>;
+  clearAlerts: () => void;
 }
 
 export const useTopologyStore = create<TopologyState>((set, get) => ({
@@ -30,6 +44,12 @@ export const useTopologyStore = create<TopologyState>((set, get) => ({
   stats: { totalNodes: 0, totalEdges: 0, byType: {} },
   loading: false,
   error: null,
+
+  lowVoltageAlerts: [],
+  voltageMap: new Map(),
+  powerFlowStatus: null,
+  simRunning: false,
+  wsConnected: false,
 
   loadSubstations: async () => {
     try {
@@ -109,5 +129,64 @@ export const useTopologyStore = create<TopologyState>((set, get) => ({
     } catch (e: any) {
       set({ error: e.message });
     }
+  },
+
+  startWs: () => {
+    wsClient.connect();
+    set({ wsConnected: true });
+
+    wsClient.onAlerts((alerts) => {
+      set({ lowVoltageAlerts: alerts });
+    });
+
+    wsClient.onVoltageUpdates((updates) => {
+      set((state) => {
+        const newMap = new Map(state.voltageMap);
+        for (const u of updates) {
+          newMap.set(u.nodeId, u.voltage);
+        }
+        return { voltageMap: newMap };
+      });
+    });
+
+    wsClient.onPowerFlowResult((status) => {
+      set({ powerFlowStatus: status });
+    });
+  },
+
+  stopWs: () => {
+    wsClient.disconnect();
+    set({ wsConnected: false });
+  },
+
+  startSimulation: async (intervalMs = 5000) => {
+    try {
+      set({ loading: true });
+      await powerFlowApi.startSimulation(intervalMs);
+      set({ simRunning: true, loading: false });
+    } catch (e: any) {
+      set({ error: e.message, loading: false });
+    }
+  },
+
+  stopSimulation: async () => {
+    try {
+      await powerFlowApi.stopSimulation();
+      set({ simRunning: false });
+    } catch (e: any) {
+      set({ error: e.message });
+    }
+  },
+
+  setLoadMultiplier: async (multiplier) => {
+    try {
+      await powerFlowApi.setLoadMultiplier(multiplier);
+    } catch (e: any) {
+      set({ error: e.message });
+    }
+  },
+
+  clearAlerts: () => {
+    set({ lowVoltageAlerts: [] });
   },
 }));

@@ -1,3 +1,41 @@
+export interface LowVoltageAlert {
+  nodeId: string;
+  nodeName: string;
+  baseVoltage: number;
+  voltageMagnitude: number;
+  voltagePerUnit: number;
+  dropPercentage: number;
+  threshold: number;
+  timestamp: number;
+  severity: 'WARNING' | 'CRITICAL';
+  realLoad: number;
+  reactiveLoad: number;
+}
+
+export interface ScadaDataPoint {
+  nodeId: string;
+  timestamp: number;
+  realPower?: number;
+  reactivePower?: number;
+  voltageMagnitude?: number;
+  breakerStatus?: boolean;
+  powerFactor?: number;
+}
+
+export interface VoltageUpdate {
+  nodeId: string;
+  voltage: number;
+  angle: number;
+}
+
+export interface PowerFlowStatus {
+  converged: boolean;
+  iterations: number;
+  maxMismatch: number;
+  calculationTimeMs: number;
+  lowVoltageCount?: number;
+}
+
 export enum EquipmentType {
   SUBSTATION = 'Substation',
   BUSBAR_SECTION = 'BusbarSection',

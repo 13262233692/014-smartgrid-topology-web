@@ -541,18 +541,18 @@ export class CimParserService {
       pushEdge(nxt, cbId, 'CONNECTED_TO');
 
       for (let l = 1; l <= 3; l++) {
-        const loadId = `${nodeId}-LOAD-${l}`;
+        const loadId = `${cur}-LOAD-${l}`;
         nodes.push({
           id: loadId,
           mrid: loadId,
           name: `老城区环网${String.fromCharCode(65 + i)}-用户${l}`,
           type: EquipmentType.ENERGY_CONSUMER,
-          feederId: nodeId,
+          feederId: cur,
           p: Math.round((200 + Math.random() * 600) * 100) / 100,
           q: Math.round((100 + Math.random() * 300) * 100) / 100,
           energized: true,
         });
-        pushEdge(nodeId, loadId, 'SUPPLIES');
+        pushEdge(cur, loadId, 'SUPPLIES');
       }
     }
     const tieFeeder1 = 'OLD-CITY-FDR-1';
